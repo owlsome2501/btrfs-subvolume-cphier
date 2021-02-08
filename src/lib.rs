@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::io;
 use std::path::{Path, PathBuf};
 use std::process;
 
@@ -28,16 +29,27 @@ impl Subvolume {
     }
 
     pub fn create(path: &Path, hierachy: &Vec<(String, FileType)>) -> Result<Self, String> {
-        Subvolume::_btrfs_subvolume_create(path)?;
+        if let Err(_) = Subvolume::_btrfs_subvolume_show_abs_path(path) {
+            Subvolume::_btrfs_subvolume_create(path)?;
+        }
         // check whether the subvolume is created successfully
         let abs_path = Subvolume::_btrfs_subvolume_show_abs_path(path)?;
         for (child_rela_path, ft) in hierachy {
             let child_path = path.join(child_rela_path);
             match ft {
                 FileType::Directory => {
-                    std::fs::create_dir(child_path).or_else(|e| Err(e.to_string()))?
+                    if let Err(e) = std::fs::create_dir(child_path) {
+                        match e.kind() {
+                            io::ErrorKind::AlreadyExists => (),
+                            _ => return Err(e.to_string()),
+                        }
+                    }
                 }
-                FileType::Subvolume => Subvolume::_btrfs_subvolume_create(&child_path)?,
+                FileType::Subvolume => {
+                    if let Err(_) = Subvolume::_btrfs_subvolume_show_abs_path(&child_path) {
+                        Subvolume::_btrfs_subvolume_create(&child_path)?;
+                    }
+                }
             }
         }
         Ok(Subvolume {
