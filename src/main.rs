@@ -67,8 +67,7 @@ impl Subvolume {
                 child_abs_path
                     .strip_prefix(abs_path)
                     .unwrap()
-                    .strip_prefix("/")
-                    .unwrap(),
+                    .trim_start_matches('/')
             );
             hierachy.extend(Subvolume::_build_hierarchy(&child_path, &child_abs_path));
         }
@@ -88,7 +87,10 @@ impl Subvolume {
         }
         let output = String::from_utf8(output.stdout).unwrap();
         let abs_path: Vec<&str> = output.lines().take(1).collect();
-        let abs_path = abs_path[0].to_string();
+        let mut abs_path = abs_path[0].to_string();
+        if !abs_path.starts_with('/') {
+            abs_path.insert(0, '/');
+        }
         Ok(abs_path)
     }
 
@@ -107,12 +109,13 @@ impl Subvolume {
         }
         let output = String::from_utf8(output.stdout).unwrap();
         // let mut hierachy: Vec<Vec<&str>> = output
-        let child: Vec<String> = output
+        let mut child: Vec<String> = output
             .lines()
             .skip(2)
             // .map(|line| line.split_whitespace().last().unwrap().split('/').collect())
             .map(|line| line.split_whitespace().last().unwrap().to_string())
             .collect();
+        child.iter_mut().map(|s| s.insert(0, '/')).count();
         // hierachy.sort_by_key(|path| path.len());
         // let mut subvolume = HashSet::new();
         Ok(child)
