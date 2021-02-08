@@ -15,12 +15,7 @@ fn main() -> Result<(), String> {
 
     let mut src_volume = Subvolume::from(src)?;
     src_volume.read_hierarchy();
-    println!("{}", src_volume.abs_path);
-    println!("{:?}", src_volume.hierachy);
-    let mut dst_volume = Subvolume::create(dst, &src_volume.hierachy.unwrap())?;
-    dst_volume.read_hierarchy();
-    println!("{}", dst_volume.abs_path);
-    println!("{:?}", dst_volume.hierachy);
+    let _dst_volume = Subvolume::create(dst, &src_volume.hierachy.unwrap())?;
 
     Ok(())
 }

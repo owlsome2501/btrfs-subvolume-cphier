@@ -17,7 +17,7 @@ cooperate with `rsync` to backup files.
 
 ```bash
 btrfs-subvolume-cphier SRC DST
-rsync -aAX SRC/ DST
+rsync --delete -aAX SRC/ DST
 ```
 
 ## Known Issue
